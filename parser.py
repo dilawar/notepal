@@ -28,7 +28,6 @@ class NotepalParser( ):
     def get_post( self ):
         filteredTree =  etree.XPath( "//div[@class='content clearfix']" )
         res = self.root.find( ".//div[@class='content clearfix']")
-        print("\n======================")
-        print html2text.html2text( etree.tostring( res ))
+        return etree.tostring( res )
         
 

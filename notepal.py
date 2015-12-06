@@ -20,9 +20,9 @@ import mechanize
 import html2text
 import cookielib
 import sys, os, shutil, getpass, glob, subprocess
-from bs4 import BeautifulSoup
 import urllib2 as urllib
 import parser
+import viewer
 
 def fix_html( htmlText ):
     return htmlText.decode( errors = 'ignore' )
@@ -95,23 +95,27 @@ class Notepal():
     def start(self, args):
         print("[INFO] Doing thingy")
         links = []
-        if 'list' in args:
+        if args['list']:
             print("[INFO] Getting list of all notes")
             res = self.br.follow_link( text_regex = 'Recent posts')
             baseurl = self.br.geturl()
             for i, l in enumerate(self.br.links( url_regex = 'content\/' )):
                 print("%3s: %s" % (i, l.text))
                 links.append( l )
-        else:
-            print("[INFO] Unsupported args: %s" % args.keys())
-        res = raw_input( "Which post you want to read [None]")
-        if res:
-            postId = int(res)
-            link = links[ postId ]
-            parserObj = parser.NotepalParser( self.br.follow_link( link ).read() )
-            parserObj.get_post( )
-        else:
-            return
+            res = raw_input( "Which post you want to read [None]")
+            if res:
+                postId = int(res)
+                link = links[ postId ]
+                parserObj = parser.NotepalParser( self.br.follow_link( link ).read() )
+                post = parserObj.get_post( )
+                # read the post in browser.
+                viewer.view_post( post )
+            else:
+                return
+        elif args['list_files']:
+            print("[INFO] Listing out files")
+            res = self.br.open( self.url+"/sites/default/files/users/dilawars" )
+            print html2text.html2text( res.read() )
 
 
 def main(args):
@@ -140,6 +144,12 @@ if __name__ == '__main__':
         , required = True
         , help = 'Username'
         )
+
+    argP.add_argument('--list-files', '-lf'
+            , required = False
+            , type = str
+            , help = 'List given numbers of uploaded files, default 10'
+            )
     class Args: pass 
     args = Args()
     argP.parse_args(namespace=args)
